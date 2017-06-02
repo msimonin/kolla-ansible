@@ -125,9 +125,15 @@
   kolla_docker:
     action: "recreate_or_restart_container"
     common_options: "{{ docker_common_options }}"
-    name: "{{ service.container_name }}"
+    name: "{{ service.container_name }}_{{ item }}"
     image: "{{ service.image }}"
-    volumes: "{{ service.volumes }}"
+    # NOTE(msimonin): explicly mount a list of volume here instead of those in
+    # defaults/main : every fake agent will use its own configuration files
+    volumes:
+      - "{{ node_config_directory }}/neutron-openvswitch-agent-fake-{{ item }}/:{{ container_config_directory }}/:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/run:/run:shared"
+      - "kolla_logs:/var/log/kolla/"
     privileged: "{{ service.privileged | default(False) }}"
   with_sequence: "start=1 end={{ num_nova_fake_per_node }}"
   when:
@@ -152,9 +158,15 @@
   kolla_docker:
     action: "recreate_or_restart_container"
     common_options: "{{ docker_common_options }}"
-    name: "{{ service.container_name }}"
+    name: "{{ service.container_name }}_{{ item }}"
     image: "{{ service.image }}"
-    volumes: "{{ service.volumes }}"
+    # NOTE(msimonin): explicly mount a list of volume here instead of those in
+    # defaults/main : every fake agent will use its own configuration files
+    volumes:
+      - "{{ node_config_directory }}/neutron-sfc-agent-fake-{{ item }}/:{{ container_config_directory }}/:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+      - "/run:/run:shared"
+      - "kolla_logs:/var/log/kolla/"
     privileged: "{{ service.privileged | default(False) }}"
   with_sequence: "start=1 end={{ num_nova_fake_per_node }}"
   when:
